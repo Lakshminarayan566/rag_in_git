@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitBrain | RAG Code Explorer</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --primary-blue: #2f81f7;
+            --primary-hover: #58a6ff;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --success-green: #238636;
+            --error-red: #f85149;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark); 
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .container { 
+            width: 100%;
+            max-width: 850px; 
+            background: var(--card-bg); 
+            padding: 32px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h2 { margin: 0; font-size: 24px; color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header p { color: var(--text-muted); font-size: 14px; margin-top: 8px; }
+
+        .form-section { margin-bottom: 24px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: var(--text-muted); }
+
+        .input-wrapper { display: flex; gap: 10px; position: relative; }
+        
+        input { 
+            flex: 1;
+            padding: 12px 16px; 
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            color: white;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(47, 129, 247, 0.2); }
+
+        button { 
+            padding: 12px 20px; 
+            background-color: var(--primary-blue); 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+            min-width: 140px;
+        }
+
+        button:hover:not(:disabled) { background-color: var(--primary-hover); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .status-msg { font-size: 13px; margin-top: 8px; min-height: 20px; font-weight: 400; display: flex; align-items: center; gap: 6px; }
+
+        #response { 
+            background: #0d1117; 
+            padding: 24px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color);
+            min-height: 120px; 
+            line-height: 1.6;
+            font-size: 15px;
+            color: #e6edf3;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .divider { height: 1px; background: var(--border-color); margin: 32px 0; }
+        
+        /* Message styling */
+        .success { color: var(--success-green); }
+        .error { color: var(--error-red); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2><i data-lucide="github"></i> GitBrain AI</h2>
+            <p>Chat with any GitHub repository using RAG & Llama 3.3</p>
+        </div>
+        
+        <div class="form-section">
+            <label>1. Provide Repository Source</label>
+            <div class="input-wrapper">
+                <input type="text" id="repoUrl" placeholder="https://github.com/username/repository">
+                <button onclick="indexRepo()" id="idxBtn">
+                    <span id="idxText">Index Repository</span>
+                    <div class="spinner" id="idxSpinner"></div>
+                </button>
+            </div>
+            <div id="indexStatus" class="status-msg"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="form-section">
+            <label>2. Ask a Question about the Code</label>
+            <div class="input-wrapper">
+                <input type="text" id="userQuestion" placeholder="e.g., How does the authentication flow work?">
+                <button onclick="askQuestion()" id="askBtn">
+                    <i data-lucide="message-square" size="18"></i>
+                    Ask Question
+                </button>
+            </div>
+        </div>
+        
+        <label>AI Response</label>
+        <div id="response">Waiting for codebase to be indexed...</div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        const API = "http://127.0.0.1:8000";
+    
+        async function indexRepo() {
+            const urlInput = document.getElementById('repoUrl').value;
+            const btn = document.getElementById('idxBtn');
+            const status = document.getElementById('indexStatus');
+            const spinner = document.getElementById('idxSpinner');
+            const text = document.getElementById('idxText');
+    
+            if (!urlInput) { alert("Please enter a URL"); return; }
+    
+            btn.disabled = true;
+            spinner.style.display = "block";
+            text.style.display = "none";
+            status.innerHTML = `<span style="color: var(--text-muted)">⚡ Processing repository... this may take a moment.</span>`;
+    
+            try {
+                const res = await fetch(`${API}/index`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ url: urlInput })
+                });
+                const data = await res.json();
+                
+                if (res.ok && data.status === "success") {
+                    status.innerHTML = `<span class="success">✅ Codebase indexed and ready for questions!</span>`;
+                } else {
+                    status.innerHTML = `<span class="error">❌ Error: ${data.message || "Failed to index"}</span>`;
+                }
+            } catch (err) {
+                status.innerHTML = `<span class="error">❌ Connection Error. Is your FastAPI server running?</span>`;
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = "none";
+                text.style.display = "block";
+            }
+        }
+    
+        async function askQuestion() {
+            const questionInput = document.getElementById('userQuestion').value;
+            const btn = document.getElementById('askBtn');
+            const respDiv = document.getElementById('response');
+    
+            if (!questionInput) return;
+    
+            btn.disabled = true;
+            respDiv.innerHTML = `<span style="color: var(--text-muted)">🧠 AI is analyzing the code...</span>`;
+    
+            try {
+                const res = await fetch(`${API}/query`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ question: questionInput })
+                });
+                const data = await res.json();
+                respDiv.innerText = data.answer || "No response received.";
+            } catch (err) {
+                respDiv.innerHTML = `<span class="error">❌ Error: Could not connect to the AI service.</span>`;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
