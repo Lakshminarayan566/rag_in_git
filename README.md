@@ -1,51 +1,146 @@
-# Retrieval-Augmented Generation (RAG) and Semantic Knowledge Pipeline
+# GitBrain AI – RAG Code Intelligence
 
-### Cloud-LLM Orchestration and Contextual Intelligence Framework
-This repository features a research-centric implementation of a Retrieval-Augmented Generation (RAG) pipeline utilizing high-performance Cloud APIs. The system focuses on the optimization of the retrieval lifecycle—bridging the gap between static vector-space indexing and dynamic context injection for grounded, evidence-based LLM responses.
+GitBrain AI is a Retrieval-Augmented Generation (RAG) system that allows users to index a GitHub repository and ask natural-language questions about its codebase.
 
----
+## Features
 
-## Research Background and Motivation
-Large Language Models (LLMs) are often limited by fixed training cut-offs and limited context windows. This project investigates the "Retrieval" bottleneck in the RAG architecture, focusing on:
-* **High-Fidelity Context Injection:** Optimizing the transition of semantically relevant data from vector stores into API-based prompt windows.
-* **Token Efficiency and Prompt Engineering:** Developing strategies to maximize information density while minimizing API token consumption and costs.
-* **Hallucination Mitigation:** Implementing strict grounding protocols to ensure responses are derived exclusively from the retrieved knowledge base.
+* GitHub repository indexing
+* Semantic code search
+* Code explanation using RAG
+* ChromaDB vector storage
+* Groq LLM integration
+* FastAPI backend
+* Web-based user interface
 
+## How It Works
 
+```text
+GitHub Repository
+        ↓
+Repository Indexing
+        ↓
+Code Embeddings
+        ↓
+ChromaDB
+        ↓
+User Query
+        ↓
+Relevant Code Retrieval
+        ↓
+Groq LLM
+        ↓
+Generated Answer
+```
 
----
+## Screenshots
 
-## Technical Implementation
-The pipeline is engineered with a modular, scalable architecture designed to handle complex data structures.
+### User Interface
 
-* **LLM API Orchestration:** Advanced integration with Cloud-based LLMs (OpenAI/Gemini/Anthropic) for high-reasoning generation.
-* **Vector Intelligence:** Implementation of ChromaDB for high-dimensional similarity search and persistent semantic memory.
-* **Semantic Parsing:** Utilizing recursive character splitting and metadata tagging to preserve document hierarchy during the ingestion phase.
-* **Embedding Architectures:** Leveraging state-of-the-art text embedding models to project textual data into a dense vector space.
+![GitBrain AI User Interface](assets/gitbrain-ui.png)
 
----
+### RAG Answer 1
 
-## Detailed Methodology
-The framework operates through a refined four-stage pipeline:
+![GitBrain AI RAG Answer 1](assets/gitbrain-answer1.png)
 
-### 1. Ingestion and Multi-Stage Parsing
-Documents are processed into discrete nodes. By utilizing structural parsing, the system ensures that logical units—such as code blocks or paragraphs—are preserved, preventing context fragmentation.
+### RAG Answer 2
 
-### 2. Vectorization and Indexing
-Data is projected into a multi-dimensional vector space. We utilize dense retrieval techniques where embeddings capture the "intent" of the query, allowing the system to handle complex, non-keyword-specific questions.
-
-### 3. Contextual Retrieval
-The system implements a Top-K similarity search to isolate the most relevant context. This stage is critical for research into "Noise-to-Signal" ratios, ensuring the LLM receives the highest quality data within its context window.
-
-### 4. Generation and Grounding
-The generation phase utilizes a specialized system prompt that acts as a "guardrail," forcing the API-based model to cite its sources and avoid creative fabrication (hallucination).
-
----
+![GitBrain AI RAG Answer 2](assets/gitbrain-answer2.png)
 
 ## Project Structure
+
 ```text
-├── main.py                 # Core RAG logic and API orchestration engine
-├── index.html              # Web-based interface for user interaction
-├── data/                   # Knowledge base (PDFs, Markdown, or Text files)
-├── db/                     # Persistent Vector Database (ChromaDB)
-└── README.md               # Technical documentation and research notes
+├── main.py
+├── index.html
+├── assets/
+│   ├── gitbrain-ui.png
+│   ├── gitbrain-answer1.png
+│   └── gitbrain-answer2.png
+└── README.md
+```
+
+## Technologies
+
+* **Python**
+* **FastAPI**
+* **LangChain**
+* **Groq / Llama**
+* **ChromaDB**
+* **HuggingFace Sentence Transformers**
+* **Git / GitPython**
+* **HTML, CSS, JavaScript**
+
+## Running the Project
+
+### Install Dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### Start the Backend
+
+```bash
+python main.py
+```
+
+The backend runs locally at:
+
+```text
+http://localhost:8000
+```
+
+### Usage
+
+1. Open the web interface.
+2. Provide a GitHub repository URL.
+3. Click **Index Repository**.
+4. Enter a question about the repository.
+5. Get a RAG-based answer using the indexed codebase.
+
+## Example Queries
+
+```text
+Explain the project in short.
+
+Explain main.py in this project.
+
+How does repository indexing work?
+
+Which file handles the API endpoints?
+
+Explain how ChromaDB is used.
+
+How does the RAG pipeline retrieve relevant context?
+```
+
+## RAG Pipeline
+
+```text
+Repository
+    ↓
+Clone & Parse
+    ↓
+Chunk Code
+    ↓
+Generate Embeddings
+    ↓
+ChromaDB
+    ↓
+User Query
+    ↓
+Semantic Retrieval
+    ↓
+Relevant Context
+    ↓
+Groq LLM
+    ↓
+Grounded Answer
+```
+
+## Purpose
+
+The project demonstrates how Retrieval-Augmented Generation can be applied to **repository-level code understanding**, allowing users to interact with a codebase using natural-language queries rather than manually searching through files.
+
+## License
+
+This project is intended for research, experimentation, and educational purposes.
